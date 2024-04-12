@@ -45,6 +45,7 @@ function addWeekDays(initData) {
 function filterInterval(initData, interval) {
   if (interval === 'all time') return initData  
   
+  console.log(initData, interval)
 
   let days = 7
   if (interval === 'last 7') {days = 7}
@@ -53,9 +54,8 @@ function filterInterval(initData, interval) {
   
   const currentTime = new Date().getTime();
   const nDaysAgo = currentTime - (days * 24 * 60 * 60 * 1000);
-
+  const filteredData = initData.filter(item => item.parsedDate >= nDaysAgo);
   
-const filteredData = initData.filter(item => item.parsedDate >= nDaysAgo);
 
   return filteredData
 }
@@ -177,6 +177,14 @@ function shareTimeline(initData, {width, height} = {}, scale, interval) {
 })
 }
 
+function getMoodAggregate(initData, interval, mood) {
+  const data = filterInterval(initData, interval);
+  
+  console.log('a', interval, data)
+  return '30%'
+
+}
+
 ```
 <style>
 .secondRow {
@@ -190,6 +198,20 @@ function shareTimeline(initData, {width, height} = {}, scale, interval) {
 ${scaleInput}
 ${timeIntervalInput}
 
+</div>
+<div class="grid grid-cols-4">
+   <a class="card" style="color: inherit;">
+    <h2>Nervous</h2>
+    <span class="big red">${getMoodAggregate(mood, timeInterval, 'Nervous')}</span>
+  </a>
+  <a class="card" style="color: inherit;">
+    <h2>Happy</h2>
+    <span class="big blue">35%</span>
+  </a>
+  <a class="card" style="color: inherit;">
+    <h2>Calm %</h2>
+    <span class="big yellow">35%</span>
+  </a>
 </div>
 <div class="gridStructure">
   <div class="grid">
