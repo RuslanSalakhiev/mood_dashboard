@@ -9,7 +9,8 @@ toc: false
 <!-- Load and transform the data -->
 
 ```js
-const mood = FileAttachment("data/flic.csv").csv({typed: true});
+const mood = FileAttachment("data/flicMoodOnly.csv").csv({typed: true});
+
 const scaleInput = Inputs.radio(["day", "week", "month"], { value:"day"});
 const scale = Generators.input(scaleInput);
 
@@ -20,32 +21,10 @@ const timeInterval = Generators.input(timeIntervalInput);
 <!-- Plot of launch history -->
 
 ```js
-
-function addParsedData(initData) {
-  return initData.map((d) => {
-    return {...d, parsedDate: Date.parse(d.date)}
-  })
-}
-
-function filterMoods(initData) {
-  return initData.filter((d) => d.type == 'mood')
-}
-
-function addWeekDays(initData) {
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-  return initData.map((d) => {
-
-    const date =  new Date(d.parsedDate);
-    const weekday = days[date.getDay()]
-    return {...d, weekday }
-  })
-}
+import _ from "npm:lodash";
 
 function filterInterval(initData, interval) {
   if (interval === 'all time') return initData  
-  
-  console.log(initData, interval)
 
   let days = 7
   if (interval === 'last 7') {days = 7}
@@ -54,15 +33,15 @@ function filterInterval(initData, interval) {
   
   const currentTime = new Date().getTime();
   const nDaysAgo = currentTime - (days * 24 * 60 * 60 * 1000);
-  const filteredData = initData.filter(item => item.parsedDate >= nDaysAgo);
+  const filteredData = initData.filter(item => item.date >= nDaysAgo);
   
 
   return filteredData
 }
 
 function eventsTimeline(initData, {width, height} = {}, scale, interval) {
-  let data = addParsedData(initData)
-  data = filterInterval(data, interval)
+
+  let data = filterInterval(initData, interval)
   
   return Plot.plot({
     color: {scheme: "YlGnBu"},
@@ -71,16 +50,15 @@ function eventsTimeline(initData, {width, height} = {}, scale, interval) {
     width,
     height,
     marks: [
-      Plot.rectY(data, Plot.binX({ y: "count", fill:'count'  }, { x: "parsedDate", tip: true, interval: scale })),
+      Plot.rectY(data, Plot.binX({ y: "count", fill:'count'  }, { x: "date", tip: true, interval: scale })),
       Plot.ruleY([0])
     ]
 })
 }
 
 function otherTimeline(initData, {width, height} = {}, scale, interval) {
-  let data = addParsedData(initData)
-  data = filterMoods(data)
-  data = filterInterval(data, interval)
+
+  const data = filterInterval(initData, interval)
 
   const color = Plot.scale({color: {scheme: "Observable10", domain: ["Happy",  "Neutral", "Nervous"], legend: true }});
 
@@ -96,7 +74,7 @@ function otherTimeline(initData, {width, height} = {}, scale, interval) {
       data,
       Plot.binX(
         { y: "count"},
-        { fy: "Mood", x: "parsedDate", y: "Mood", fill: "Mood", tip: true, interval: scale  }
+        { fy: "mood", x: "date", y: "mood", fill: "mood", tip: true, interval: scale  }
       )
     ),
     Plot.ruleY([0]),
@@ -106,10 +84,7 @@ function otherTimeline(initData, {width, height} = {}, scale, interval) {
 }
 
 function weekdaysComparison(initData, {width, height} = {}, scale, interval) {
-  let data = addParsedData(initData) 
-  data = filterMoods(data)
-  data = addWeekDays(data)
-  data = filterInterval(data, interval)
+  const data = filterInterval(initData, interval)
 
   const color = Plot.scale({color: {scheme: "Observable10", domain: ["Happy",  "Neutral", "Nervous"], legend: true }});
   
@@ -127,7 +102,7 @@ function weekdaysComparison(initData, {width, height} = {}, scale, interval) {
       data,
       Plot.groupX(
         { y: "proportion"},
-        { fx: "weekday", x: "Type", fill: "Mood", tip: true, offset: 'normalize', order: [ "Nervous","Neutral", "Happy"] },
+        { fx: "weekday", x: "type", fill: "mood", tip: true, offset: 'normalize', order: [ "Nervous","Neutral", "Happy"] },
       ),
       
     ),
@@ -138,7 +113,7 @@ function weekdaysComparison(initData, {width, height} = {}, scale, interval) {
            {order: "x", offset: 'normalize', order: [ "Nervous","Neutral", "Happy"]},
             Plot.groupX(
               { y: "proportion", text:'proportion-facet'},
-              { fx: "weekday", x: "Type", z:"Mood", lineAnchor: 'bottom' },
+              { fx: "weekday", x: "type", z:"mood", lineAnchor: 'bottom' },
             )
           ),
        )
@@ -151,9 +126,7 @@ function weekdaysComparison(initData, {width, height} = {}, scale, interval) {
 }
 
 function shareTimeline(initData, {width, height} = {}, scale, interval) {
-  let data = addParsedData(initData)
-  data = filterMoods(data)
-  data = filterInterval(data, interval)
+  const data = filterInterval(initData, interval)
 
   const color = Plot.scale({color: {scheme: "Observable10", domain: ["Happy",  "Neutral", "Nervous"], legend: true }});
 
@@ -168,7 +141,7 @@ function shareTimeline(initData, {width, height} = {}, scale, interval) {
       data,
       Plot.binX(
         { y: "count"},
-        { x: "parsedDate", y: "Mood", fill: "Mood", tip: true, interval: scale, offset: 'normalize' ,order: [ "Nervous","Neutral", "Happy"] }
+        { x: "date", y: "mood", fill: "mood", tip: true, interval: scale, offset: 'normalize' ,order: [ "Nervous","Neutral", "Happy"] }
       )
     ),
     Plot.ruleY([0]),
@@ -179,9 +152,11 @@ function shareTimeline(initData, {width, height} = {}, scale, interval) {
 
 function getMoodAggregate(initData, interval, mood) {
   const data = filterInterval(initData, interval);
-  
-  console.log('a', interval, data)
-  return '30%'
+  const aggData = _.groupBy(data, 'mood')
+
+  console.log(aggData,aggData[mood].length, data.length )
+  const percent = aggData[mood].length / data.length;
+  return Math.floor(percent * 100) + '%'
 
 }
 
@@ -206,11 +181,11 @@ ${timeIntervalInput}
   </a>
   <a class="card" style="color: inherit;">
     <h2>Happy</h2>
-    <span class="big blue">35%</span>
+    <span class="big blue">${getMoodAggregate(mood, timeInterval, 'Happy')}</span>
   </a>
   <a class="card" style="color: inherit;">
-    <h2>Calm %</h2>
-    <span class="big yellow">35%</span>
+    <h2>Neutral</h2>
+    <span class="big yellow">${getMoodAggregate(mood, timeInterval, 'Neutral')}</span>
   </a>
 </div>
 <div class="gridStructure">
