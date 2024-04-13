@@ -31,8 +31,9 @@ function filterInterval(initData, interval) {
   if (interval === 'last 30') {days = 30}
   if (interval === 'last 90') {days = 90}
   
-  const currentTime = new Date().getTime();
-  const nDaysAgo = currentTime - (days * 24 * 60 * 60 * 1000);
+  const currentTime = new Date()
+  currentTime.setHours(0, 0, 0, 0)
+  const nDaysAgo = currentTime.getTime() - (days * 24 * 60 * 60 * 1000);
   const filteredData = initData.filter(item => item.date >= nDaysAgo);
   
 
