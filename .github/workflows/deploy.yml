@@ -22,7 +22,7 @@ jobs:
       - name: Deploy to Observable Cloud
         # This parameter to `--message` will use the latest commit message
         run: |
-          max_attempts=3
+          max_attempts=10
           count=0
           until npm run deploy -- --message "$(git log -1 --pretty=%s)"; do
             count=$((count+1))
