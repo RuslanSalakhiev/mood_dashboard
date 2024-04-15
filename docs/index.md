@@ -14,7 +14,7 @@ const mood = FileAttachment("data/flicMoodOnly.csv").csv({typed: true});
 const scaleInput = Inputs.radio(["day", "week", "month"], { value:"day"});
 const scale = Generators.input(scaleInput);
 
-const timeIntervalInput = Inputs.radio(["last 7","last 30", "last 90", "all time"], { value:"last 90"});
+const timeIntervalInput = Inputs.radio(["last 7","last 30", "last 90", "all time"], { value:"last 7"});
 const timeInterval = Generators.input(timeIntervalInput);
 
 
@@ -164,10 +164,12 @@ function getMoodAggregate(initData, interval, mood) {
 
 ```
 <style>
-.secondRow {
-  /* grid-template-columns: 1fr; */
-  grid-template-rows: 320px;
+.factoidRow {
+    max-width: 600px;
+    grid-template-columns: repeat(3, 1fr);
 }
+
+
 </style>
 
 
@@ -176,20 +178,22 @@ ${scaleInput}
 ${timeIntervalInput}
 
 </div>
-<div class="grid grid-cols-4">
-   <a class="card" style="color: inherit;">
-    <h2>Nervous</h2>
-    <span class="big red">${getMoodAggregate(mood, timeInterval, 'Nervous')}</span>
-  </a>
-  <a class="card" style="color: inherit;">
-    <h2>Happy</h2>
-    <span class="big blue">${getMoodAggregate(mood, timeInterval, 'Happy')}</span>
-  </a>
-  <a class="card" style="color: inherit;">
-    <h2>Neutral</h2>
-    <span class="big yellow">${getMoodAggregate(mood, timeInterval, 'Neutral')}</span>
-  </a>
-</div>
+<!-- <div class="grid grid-cols-2"> -->
+  <div class="grid grid-cols-4 factoidRow">
+    <a class="card" style="color: inherit;">
+      <h2>Nervous</h2>
+      <span class="big red">${getMoodAggregate(mood, timeInterval, 'Nervous')}</span>
+    </a>
+    <a class="card" style="color: inherit;">
+      <h2>Happy</h2>
+      <span class="big blue">${getMoodAggregate(mood, timeInterval, 'Happy')}</span>
+    </a>
+    <a class="card" style="color: inherit;">
+      <h2>Neutral</h2>
+      <span class="big yellow">${getMoodAggregate(mood, timeInterval, 'Neutral')}</span>
+    </a>
+  </div>
+<!-- </div> -->
 <div class="gridStructure">
   <div class="grid">
     <div class="card">
