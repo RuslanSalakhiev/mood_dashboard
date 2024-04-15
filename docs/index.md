@@ -37,6 +37,10 @@ function popText(initData, interval, mood) {
 
 }
 
+function getHeightForMobile (width) {
+  return width <300 ? width / 1.6 : undefined
+}
+
 
 function filterInterval(initData, interval, shiftDays = 0) {
   if (interval === 'all time') return initData  
@@ -58,7 +62,7 @@ function filterInterval(initData, interval, shiftDays = 0) {
   return filteredData
 }
 
-function eventsTimeline(initData, {width, height} = {}, scale, interval) {
+function eventsTimeline(initData, {width} = {}, scale, interval) {
 
   let data = filterInterval(initData, interval)
   
@@ -67,7 +71,7 @@ function eventsTimeline(initData, {width, height} = {}, scale, interval) {
     x: {label: null},
     y: { type: "linear", label: null },
     width,
-    height,
+    height: getHeightForMobile(width),
     marks: [
       Plot.rectY(data, Plot.binX({ y: "count" }, { x: "date", tip: true, interval: scale })),
       Plot.ruleY([0])
@@ -87,7 +91,7 @@ function otherTimeline(initData, {width, height} = {}, scale, interval) {
     y: {label: null},
     x: {label: null},
     width,
-    height,
+    height: getHeightForMobile(width),
     marks: [
     Plot.frame({ strokeOpacity: 0.1 }),
     Plot.rectY(
@@ -114,7 +118,7 @@ function weekdaysComparison(initData, {width, height} = {}, scale, interval) {
     fx: {label: null},
     y: { type: "linear", label: null, percent: true},
     width,
-    height,
+    height: getHeightForMobile(width),
     color: {...color },
     marks: [
     Plot.frame({ strokeOpacity: 0.1 }),
@@ -145,7 +149,7 @@ function weekdaysComparison(initData, {width, height} = {}, scale, interval) {
 })
 }
 
-function shareTimeline(initData, {width, height} = {}, scale, interval) {
+function shareTimeline(initData, {width, } = {}, scale, interval) {
   const data = filterInterval(initData, interval)
 
   const color = Plot.scale({color:colorScale});
@@ -154,7 +158,7 @@ function shareTimeline(initData, {width, height} = {}, scale, interval) {
     color: {...color },
     y: {label: null},
     width,
-    height,
+    height: getHeightForMobile(width),
     marks: [
     Plot.frame({ strokeOpacity: 0.1 }),
     Plot.rectY(
@@ -242,18 +246,18 @@ ${timeIntervalInput}
     </div>
   </div>
 
-  <div class="grid " style="grid-auto-rows: 240px;">
+  <div class="grid" >
     <div class="card">
-      ${resize((width, height) => eventsTimeline(mood, {width,height}, scale, timeInterval))}
+      ${resize((width) => eventsTimeline(mood, {width}, scale, timeInterval))}
     </div>
   </div>
 
-  <div class="grid secondRow grid-cols-2" >
+  <div class="grid" >
     <div class="card">
-      ${resize((width, height) => otherTimeline(mood, {width,height}, scale, timeInterval))}
+      ${resize((width) => otherTimeline(mood, {width}, scale, timeInterval))}
     </div>
     <div class="card">
-      ${resize((width, height) => weekdaysComparison(mood, {width, height}, scale, timeInterval))}
+      ${resize((width) => weekdaysComparison(mood, {width}, scale, timeInterval))}
     </div>
   </div>
 </div>
