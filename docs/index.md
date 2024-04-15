@@ -25,7 +25,20 @@ const colorScale = {scheme: "Observable10", domain: ["Happy",  "Neutral", "Nervo
 ```js
 import _ from "npm:lodash";
 
-function filterInterval(initData, interval) {
+function popText(initData, interval, mood) {
+
+  const popValue =  getMoodAggregatePoP(initData, interval, mood); 
+
+  if (interval === 'all time') return ''
+  if (interval === 'last 7') return `${formatPercent(popValue)} pW`
+  if (interval === 'last 30') return `${formatPercent(popValue)} pM`
+  if (interval === 'last 90') return `${formatPercent(popValue)} pQ`
+  return ''
+
+}
+
+
+function filterInterval(initData, interval, shiftDays = 0) {
   if (interval === 'all time') return initData  
 
   let days = 7
@@ -33,10 +46,13 @@ function filterInterval(initData, interval) {
   if (interval === 'last 30') {days = 30}
   if (interval === 'last 90') {days = 90}
   
-  const currentTime = new Date()
+  const currentTime = new Date() 
   currentTime.setHours(0, 0, 0, 0)
-  const nDaysAgo = currentTime.getTime() - (days * 24 * 60 * 60 * 1000);
-  const filteredData = initData.filter(item => item.date >= nDaysAgo);
+
+  const currentTimeWithshift = currentTime.getTime() - shiftDays * 24 * 60 * 60 * 1000
+  const nDaysAgo = currentTimeWithshift - (days * 24 * 60 * 60 * 1000);
+
+  const filteredData = initData.filter(item => item.date >= nDaysAgo && item.date <= currentTimeWithshift);
   
 
   return filteredData
@@ -154,11 +170,33 @@ function shareTimeline(initData, {width, height} = {}, scale, interval) {
 })
 }
 
+
+function formatPercent(num) {
+  return Math.floor(num * 100) + '%'
+}
+
 function getMoodAggregate(initData, interval, mood) {
   const data = filterInterval(initData, interval);
   const aggData = _.groupBy(data, 'mood')
   const percent = aggData[mood].length / data.length;
-  return Math.floor(percent * 100) + '%'
+
+  return formatPercent(percent)
+
+}
+
+function getMoodAggregatePoP(initData, interval, mood) {
+  
+  let shifDays = 0
+
+  if (interval === 'last 7') {shifDays = 7}
+  if (interval === 'last 30') {shifDays = 30}
+  if (interval === 'last 90') {shifDays = 90}
+  
+  const data = filterInterval(initData, interval, shifDays);
+  const aggData = _.groupBy(data, 'mood')
+  const percent = aggData[mood].length / data.length;
+
+  return percent
 
 }
 
@@ -182,19 +220,22 @@ ${timeIntervalInput}
   <div class="grid grid-cols-4 factoidRow">
     <a class="card" style="color: inherit;">
       <h2>Nervous</h2>
-      <span class="big red">${getMoodAggregate(mood, timeInterval, 'Nervous')}</span>
+      <span class="big red">${getMoodAggregate(mood, timeInterval, 'Nervous')}</span><br>
+      <span class="small red">${popText(mood, timeInterval, 'Nervous')}</span> 
     </a>
     <a class="card" style="color: inherit;">
       <h2>Happy</h2>
-      <span class="big blue">${getMoodAggregate(mood, timeInterval, 'Happy')}</span>
+      <span class="big blue">${getMoodAggregate(mood, timeInterval, 'Happy')}</span><br>
+      <span class="small blue">${popText(mood, timeInterval, 'Happy')}</span> 
     </a>
     <a class="card" style="color: inherit;">
       <h2>Neutral</h2>
-      <span class="big yellow">${getMoodAggregate(mood, timeInterval, 'Neutral')}</span>
+      <span class="big yellow">${getMoodAggregate(mood, timeInterval, 'Neutral')}</span><br>
+      <span class="small yellow">${popText(mood, timeInterval, 'Neutral')}</span> 
     </a>
   </div>
 <!-- </div> -->
-<div class="gridStructure">
+<div>
   <div class="grid">
     <div class="card">
       ${resize((width) => shareTimeline(mood, {width}, scale, timeInterval))}
